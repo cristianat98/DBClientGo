@@ -26,3 +26,4 @@ go.work.sum
 
 # Other files
 vendor/
+main.go

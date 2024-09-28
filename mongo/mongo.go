@@ -24,13 +24,27 @@ type MongoManager struct {
 	timeout    int64
 }
 
-// ConnectDB is the function inside the MongoManager to connect to the MongoDB
+// CreateMongoManager is the constructor for the MongoManager. If it can not connect to the MongoDB, it will fail
+// dbUri: It is the URI to connect to the MongoDB
+// dbName: It is the name of the DB inside the MongoDB
+// collection: It is the name of the collection inside the DB inside the MongoDB
+// timeout: It is the time to define the timeout inside the MongoManager
+// It returns the MongoManager instance and an error
+func CreateMongoManager(dbUri, dbName, collection string, timeout int64) (*MongoManager, error) {
+	var mongoManager = new(MongoManager)
+	if err := mongoManager.ConnectDb(dbUri, dbName, collection, timeout); err != nil {
+		return nil, err
+	}
+	return mongoManager, nil
+}
+
+// ConnectDb is the function inside the MongoManager to connect to the MongoDB
 // dbUri: It is the URI to connect to the MongoDB
 // dbName: It is the name of the DB inside the MongoDB
 // collection: It is the name of the collection inside the DB inside the MongoDB
 // timeout: It is the time to define the timeout inside the MongoManager
 // It returns an error in case there was some error
-func (manager *MongoManager) ConnectDB(dbUri, dbName, collection string, timeout int64) error {
+func (manager *MongoManager) ConnectDb(dbUri, dbName, collection string, timeout int64) error {
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().ApplyURI(dbUri).SetServerAPIOptions(serverAPI)
 
@@ -64,7 +78,7 @@ func (manager *MongoManager) DisconnectDB() {
 	logger.Info("Disconnected to MongoDB")
 }
 
-// InsertOne is the function inside the MongoManager to Insert a document in the collection
+// InsertOne is the function inside the MongoManager to insert a document in the collection
 // document: It is the document to add in the collection
 // It returns the new document inserted in the collection and an error
 func (manager *MongoManager) InsertOne(document map[string]interface{}) (map[string]interface{}, error) {
@@ -84,9 +98,57 @@ func (manager *MongoManager) InsertOne(document map[string]interface{}) (map[str
 		}
 	}
 
-	ctx2, cancel2 := context.WithTimeout(context.Background(), time.Duration(manager.timeout)*time.Second)
-	defer cancel2()
-	resultFind := manager.collection.FindOne(ctx2, map[string]interface{}{"_id": resultInsert.InsertedID})
+	documentReturned, err := manager.FindOne(map[string]interface{}{"_id": resultInsert.InsertedID})
+	return documentReturned, err
+}
+
+// InsertMany is the function inside the MongoManager to insert many documents in the collection
+// documents: It is the list of documents to insert in the collection
+// It returns the new documents inserted in the collection and an error
+func (manager *MongoManager) InsertMany(documents []interface{}) ([]map[string]interface{}, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(manager.timeout)*time.Second)
+	defer cancel()
+
+	insertResult, err := manager.collection.InsertMany(ctx, documents)
+	if err != nil {
+		logger.Error(err.Error())
+		switch err.(type) {
+		case *mongo.CommandError:
+			return nil, &libraryErrors.ConnectionError{Db: mongoDb}
+		case *mongo.WriteErrors:
+			return nil, &libraryErrors.AlreadyExistError{Message: "Document with a key already exists"}
+		default:
+			return nil, err
+		}
+	}
+
+	insertedIds := insertResult.InsertedIDs
+	var documentsInserted []map[string]interface{}
+	for _, id := range insertedIds {
+		documentReturned, err := manager.FindOne(map[string]interface{}{"_id": id})
+		if err != nil {
+			logger.Error(err.Error())
+			switch err.(type) {
+			case *mongo.CommandError:
+				return nil, &libraryErrors.ConnectionError{Db: mongoDb}
+			default:
+				return nil, err
+			}
+		}
+		documentsInserted = append(documentsInserted, documentReturned)
+	}
+
+	return documentsInserted, err
+}
+
+// FindOne is the function to find just one document that matches with the filter
+// filter: It is the filter to find the document inside the MongoDB
+// It returns the first document matching with the filter and an error
+func (manager *MongoManager) FindOne(filter map[string]interface{}) (map[string]interface{}, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(manager.timeout)*time.Second)
+	defer cancel()
+
+	resultFind := manager.collection.FindOne(ctx, filter)
 	if err := resultFind.Err(); err != nil {
 		logger.Error(err.Error())
 		switch err.(type) {
@@ -97,7 +159,7 @@ func (manager *MongoManager) InsertOne(document map[string]interface{}) (map[str
 		}
 	}
 	var documentReturned bson.M
-	err = resultFind.Decode(&documentReturned)
+	var err = resultFind.Decode(&documentReturned)
 	if err != nil {
 		logger.Error(err.Error())
 	}
@@ -107,7 +169,7 @@ func (manager *MongoManager) InsertOne(document map[string]interface{}) (map[str
 // Find is the function inside the MongoManager to return a list of documents that match the filter defined
 // filter: It is the filter to find documents inside the MongoDB
 // It returns a list of documents (it may be empty) and an error
-func (manager *MongoManager) Find(filter map[string]interface{}) ([]map[string]interface{}, error) {
+func (manager *MongoManager) FindMany(filter map[string]interface{}) ([]map[string]interface{}, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(manager.timeout)*time.Second)
 	defer cancel()
 
@@ -135,38 +197,115 @@ func (manager *MongoManager) Find(filter map[string]interface{}) ([]map[string]i
 
 // UpdateOne is the function inside the MongoManager to update the first document that matches with the filter defined
 // filter: It is the filter to find documents inside the MongoDB to update
-// document: It contains the new changes to apply in the document found
+// update: It contains the new changes to apply in the document
 // It returns the document updated and an error
-func (manager *MongoManager) UpdateOne(filter map[string]interface{}, document interface{}) (map[string]interface{}, error) {
+func (manager *MongoManager) UpdateOne(filter map[string]interface{}, update interface{}) (map[string]interface{}, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(manager.timeout)*time.Second)
 	defer cancel()
 
-	resultFind, err := manager.Find(filter)
-	if err != nil {
-		return nil, err
-	}
-	if len(resultFind) != 1 {
-		return nil, errors.New("document not found")
-	}
-	id := resultFind[0]["_id"]
-	filterInternal := map[string]interface{}{
-		"_id": id,
-	}
-	m, ok := document.(map[string]interface{})
+	m, ok := update.(map[string]interface{})
 	if !ok {
 		logger.Error("i is not a map[string]interface{}")
 		return nil, nil
 	}
 
-	_, err = manager.collection.UpdateOne(ctx, filterInternal, bson.M{"$set": m})
+	var documentReturned bson.M
+	err := manager.collection.FindOneAndUpdate(ctx, filter, bson.M{"$set": m}).Decode(&documentReturned)
 	if err != nil {
 		return nil, err
 	}
-	resultFind, _ = manager.Find(filterInternal)
-	return resultFind[0], nil
+
+	return documentReturned, nil
+
+	// resultFind, err := manager.FindMany(filter)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// if len(resultFind) != 1 {
+	// 	return nil, errors.New("document not found")
+	// }
+	// id := resultFind[0]["_id"]
+	// filterInternal := map[string]interface{}{
+	// 	"_id": id,
+	// }
+	// m, ok := document.(map[string]interface{})
+	// if !ok {
+	// 	logger.Error("i is not a map[string]interface{}")
+	// 	return nil, nil
+	// }
+
+	// _, err = manager.collection.UpdateOne(ctx, filterInternal, bson.M{"$set": m})
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// resultFind, _ = manager.FindMany(filterInternal)
+	// return resultFind[0], nil
+}
+
+// UpdateMany is the function for updating multiple documents that match the filter
+// filter: It is the filter to find the documents
+// update: The new content for the documents found
+// It returns the documents updated and an error
+func (manager *MongoManager) UpdateMany(filter map[string]interface{}, update interface{}) ([]map[string]interface{}, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(manager.timeout)*time.Second)
+	opts := options.Update().SetUpsert(false)
+	defer cancel()
+
+	m, ok := update.(map[string]interface{})
+	if !ok {
+		logger.Error("i is not a map[string]interface{}")
+		return nil, nil
+	}
+	documentsFilter, err := manager.FindMany(filter)
+	if err != nil {
+		return nil, err
+	}
+	if len(documentsFilter) == 0 {
+		return nil, &libraryErrors.NotExistError{Message: "Document not found"}
+	}
+
+	resultUpdate, err := manager.collection.UpdateMany(ctx, filter, bson.M{"$set": m}, opts)
+	if err != nil {
+		return nil, err
+	}
+	if resultUpdate.MatchedCount == 0 {
+		return nil, &libraryErrors.NotExistError{Message: "Document not found"}
+	}
+
+	var documentsModified []map[string]interface{}
+	for _, document := range documentsFilter {
+		documentReturned, err := manager.FindOne(map[string]interface{}{"_id": document["_id"]})
+		if err != nil {
+			logger.Error(err.Error())
+			switch err.(type) {
+			case *mongo.CommandError:
+				return nil, &libraryErrors.ConnectionError{Db: mongoDb}
+			default:
+				return nil, err
+			}
+		}
+		documentsModified = append(documentsModified, documentReturned)
+	}
+
+	return documentsModified, err
+}
+
+// DeleteOne is the function inside the MongoManager to delete the first document that matches with the filter
+// filter: It is the filter to find the document to delete
+// It returns an error in case a document was not deleted
+func (manager *MongoManager) DeleteOne(filter map[string]interface{}) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(manager.timeout)*time.Second)
+	defer cancel()
+
+	result, err := manager.collection.DeleteOne(ctx, filter)
+	if result.DeletedCount == 0 {
+		return errors.New("document not found")
+	}
+	return err
 }
 
 // DeleteMany is the function inside the MongoManager to delete all the documents that match with the filter
+// filter: It is the filter to find the documents to delete
 // It returns the number of documents deleted and an error
 func (manager *MongoManager) DeleteMany(filter map[string]interface{}) (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(manager.timeout)*time.Second)

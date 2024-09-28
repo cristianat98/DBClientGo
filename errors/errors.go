@@ -17,3 +17,11 @@ type AlreadyExistError struct {
 func (e *AlreadyExistError) Error() string {
 	return e.Message
 }
+
+type NotExistError struct {
+	Message string
+}
+
+func (e *NotExistError) Error() string {
+	return e.Message
+}
