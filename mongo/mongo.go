@@ -6,7 +6,6 @@ import (
 	"time"
 
 	libraryErrors "github.com/cristianat98/dbclientgo/errors"
-	"github.com/cristianat98/dbclientgo/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -53,29 +52,22 @@ func (manager *MongoManager) ConnectDb(dbUri, dbName, collection string, timeout
 
 	client, err := mongo.Connect(ctx, opts)
 	if err != nil {
-		logger.Error(err.Error())
 		return err
 	}
 
 	var result bson.M
 	if err := client.Database(dbName).RunCommand(ctx, bson.D{{Key: "ping", Value: 1}}).Decode(&result); err != nil {
-		logger.Error(err.Error())
 		return &libraryErrors.ConnectionError{Db: mongoDb}
 	}
 	manager.client = client
 	manager.collection = client.Database(dbName).Collection(collection)
 	manager.timeout = timeout
-	logger.Info("Connected to MongoDB")
 	return nil
 }
 
 // DisconnectDB is the function inside the MongoManager to disconnect from the MongoDB
 func (manager *MongoManager) DisconnectDB() {
-	err := manager.client.Disconnect(context.TODO())
-	if err != nil {
-		logger.Error(err.Error())
-	}
-	logger.Info("Disconnected to MongoDB")
+	manager.client.Disconnect(context.TODO())
 }
 
 // InsertOne is the function inside the MongoManager to insert a document in the collection
@@ -87,7 +79,6 @@ func (manager *MongoManager) InsertOne(document map[string]interface{}) (map[str
 
 	resultInsert, err := manager.collection.InsertOne(ctx1, document)
 	if err != nil {
-		logger.Error(err.Error())
 		switch err.(type) {
 		case *mongo.CommandError:
 			return nil, &libraryErrors.ConnectionError{Db: mongoDb}
@@ -111,7 +102,6 @@ func (manager *MongoManager) InsertMany(documents []interface{}) ([]map[string]i
 
 	insertResult, err := manager.collection.InsertMany(ctx, documents)
 	if err != nil {
-		logger.Error(err.Error())
 		switch err.(type) {
 		case *mongo.CommandError:
 			return nil, &libraryErrors.ConnectionError{Db: mongoDb}
@@ -127,7 +117,6 @@ func (manager *MongoManager) InsertMany(documents []interface{}) ([]map[string]i
 	for _, id := range insertedIds {
 		documentReturned, err := manager.FindOne(map[string]interface{}{"_id": id})
 		if err != nil {
-			logger.Error(err.Error())
 			switch err.(type) {
 			case *mongo.CommandError:
 				return nil, &libraryErrors.ConnectionError{Db: mongoDb}
@@ -150,7 +139,6 @@ func (manager *MongoManager) FindOne(filter map[string]interface{}) (map[string]
 
 	resultFind := manager.collection.FindOne(ctx, filter)
 	if err := resultFind.Err(); err != nil {
-		logger.Error(err.Error())
 		switch err.(type) {
 		case *mongo.CommandError:
 			return nil, &libraryErrors.ConnectionError{Db: mongoDb}
@@ -161,7 +149,6 @@ func (manager *MongoManager) FindOne(filter map[string]interface{}) (map[string]
 	var documentReturned bson.M
 	var err = resultFind.Decode(&documentReturned)
 	if err != nil {
-		logger.Error(err.Error())
 	}
 	return documentReturned, err
 }
@@ -176,7 +163,6 @@ func (manager *MongoManager) FindMany(filter map[string]interface{}) ([]map[stri
 	var results []map[string]interface{}
 	cursor, err := manager.collection.Find(ctx, filter)
 	if err != nil {
-		logger.Error(err.Error())
 		switch err.(type) {
 		case *mongo.CommandError:
 			return nil, &libraryErrors.ConnectionError{Db: mongoDb}
@@ -205,8 +191,7 @@ func (manager *MongoManager) UpdateOne(filter map[string]interface{}, update int
 
 	m, ok := update.(map[string]interface{})
 	if !ok {
-		logger.Error("i is not a map[string]interface{}")
-		return nil, nil
+		return nil, errors.New("update is not a map[string]interface{}")
 	}
 
 	var documentReturned bson.M
@@ -216,30 +201,6 @@ func (manager *MongoManager) UpdateOne(filter map[string]interface{}, update int
 	}
 
 	return manager.FindOne(map[string]interface{}{"_id": documentReturned["_id"]})
-
-	// resultFind, err := manager.FindMany(filter)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// if len(resultFind) != 1 {
-	// 	return nil, errors.New("document not found")
-	// }
-	// id := resultFind[0]["_id"]
-	// filterInternal := map[string]interface{}{
-	// 	"_id": id,
-	// }
-	// m, ok := document.(map[string]interface{})
-	// if !ok {
-	// 	logger.Error("i is not a map[string]interface{}")
-	// 	return nil, nil
-	// }
-
-	// _, err = manager.collection.UpdateOne(ctx, filterInternal, bson.M{"$set": m})
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// resultFind, _ = manager.FindMany(filterInternal)
-	// return resultFind[0], nil
 }
 
 // UpdateMany is the function for updating multiple documents that match the filter
@@ -253,8 +214,7 @@ func (manager *MongoManager) UpdateMany(filter map[string]interface{}, update in
 
 	m, ok := update.(map[string]interface{})
 	if !ok {
-		logger.Error("i is not a map[string]interface{}")
-		return nil, nil
+		return nil, errors.New("i is not a map[string]interface{}")
 	}
 	documentsFilter, err := manager.FindMany(filter)
 	if err != nil {
@@ -276,7 +236,6 @@ func (manager *MongoManager) UpdateMany(filter map[string]interface{}, update in
 	for _, document := range documentsFilter {
 		documentReturned, err := manager.FindOne(map[string]interface{}{"_id": document["_id"]})
 		if err != nil {
-			logger.Error(err.Error())
 			switch err.(type) {
 			case *mongo.CommandError:
 				return nil, &libraryErrors.ConnectionError{Db: mongoDb}
