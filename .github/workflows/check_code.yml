@@ -37,6 +37,16 @@ jobs:
   tests:
     runs-on: ubuntu-latest
 
+    services:
+      mongo:
+        image: mongo:latest
+        # ports:
+        #   - 27017:27017       # Puerto que MongoDB utiliza por defecto
+        # options: >            # Opciones adicionales
+        #   --health-cmd "mongosh --eval 'db.runCommand({ping: 1})'"  # Comando de salud para verificar si MongoDB está listo
+        #   --health-interval 10s  # Intervalo para verificar la salud de MongoDB
+        #   --health-timeout 5s    # Tiempo de espera para la verificación
+        #   --health-retries 5     # Número de intentos antes de fallar
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

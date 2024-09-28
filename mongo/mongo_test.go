@@ -2,13 +2,15 @@ package mongo
 
 import (
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func initializeDb(dbUri, dbName, collection string, timeout int64) (*MongoManager, error) {
-	mongoManager, err := CreateMongoManager(dbUri, dbName, collection, timeout)
+func initializeDb() (*MongoManager, error) {
+	mongoUri := os.Getenv("MONGO_URI")
+	mongoManager, err := CreateMongoManager(mongoUri, "test", "test", 5)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +32,7 @@ func initializeDb(dbUri, dbName, collection string, timeout int64) (*MongoManage
 }
 
 func TestInsertOneSuccess(t *testing.T) {
-	mongoManager, err := initializeDb("mongodb://localhost", "test", "test", 5)
+	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
 
 	insertDocument := map[string]interface{}{
