@@ -215,7 +215,7 @@ func (manager *MongoManager) UpdateOne(filter map[string]interface{}, update int
 		return nil, err
 	}
 
-	return documentReturned, nil
+	return manager.FindOne(map[string]interface{}{"_id": documentReturned["_id"]})
 
 	// resultFind, err := manager.FindMany(filter)
 	// if err != nil {
