@@ -40,13 +40,13 @@ jobs:
     services:
       mongo:
         image: mongo:latest
-        # ports:
-        #   - 27017:27017       # Puerto que MongoDB utiliza por defecto
-        # options: >            # Opciones adicionales
-        #   --health-cmd "mongosh --eval 'db.runCommand({ping: 1})'"  # Comando de salud para verificar si MongoDB está listo
-        #   --health-interval 10s  # Intervalo para verificar la salud de MongoDB
-        #   --health-timeout 5s    # Tiempo de espera para la verificación
-        #   --health-retries 5     # Número de intentos antes de fallar
+        ports:
+          - 27017:27017
+        options: >
+          --health-cmd "mongosh --eval 'db.runCommand({ping: 1})'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -61,9 +61,8 @@ jobs:
 
       - name: Run tests
         run: |
-          export MONGO_URI="mongodb://mongo:27017"
+          export MONGO_URI="mongodb://localhost:27017"
           go-acc --tags=test -o coverage.out ./...
-        # working-directory: ./src/
 
       - name: Verify coverage
         run: |
@@ -77,4 +76,3 @@ jobs:
             echo "Coverage ($COVERAGE%) is below the threshold ($THRESHOLD%)"
             exit 1
           fi
-        # working-directory: ./src/
