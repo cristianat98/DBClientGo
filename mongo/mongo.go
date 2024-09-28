@@ -148,8 +148,6 @@ func (manager *MongoManager) FindOne(filter map[string]interface{}) (map[string]
 	}
 	var documentReturned bson.M
 	var err = resultFind.Decode(&documentReturned)
-	if err != nil {
-	}
 	return documentReturned, err
 }
 
