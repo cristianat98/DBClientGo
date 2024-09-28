@@ -60,7 +60,9 @@ jobs:
         run: go install github.com/ory/go-acc@latest
 
       - name: Run tests
-        run: go-acc --tags=test -o coverage.out ./...
+        run: |
+          export MONGO_URI="mongodb://localhost:27017"
+          go-acc --tags=test -o coverage.out ./...
         # working-directory: ./src/
 
       - name: Verify coverage
