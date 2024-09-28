@@ -61,7 +61,7 @@ jobs:
 
       - name: Run tests
         run: |
-          export MONGO_URI="mongodb://localhost:27017"
+          export MONGO_URI="mongodb://mongo:27017"
           go-acc --tags=test -o coverage.out ./...
         # working-directory: ./src/
 

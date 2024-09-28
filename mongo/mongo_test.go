@@ -10,6 +10,9 @@ import (
 
 func initializeDb() (*MongoManager, error) {
 	mongoUri := os.Getenv("MONGO_URI")
+	if mongoUri == "" {
+		return nil, errors.New("MONGO_URI is not set")
+	}
 	mongoManager, err := CreateMongoManager(mongoUri, "test", "test", 5)
 	if err != nil {
 		return nil, err
