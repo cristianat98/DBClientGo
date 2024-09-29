@@ -106,26 +106,30 @@ func (manager *MongoManager) InsertMany(documents []map[string]interface{}) ([]m
 	}
 
 	insertResult, err := manager.collection.InsertMany(ctx, documentsParsed)
+	var documentsInserted []map[string]interface{}
+
 	if err != nil {
-		if len(insertResult.InsertedIDs) != 0 {
-			for _, insertedId := range insertResult.InsertedIDs {
-				if err = manager.DeleteOne(map[string]interface{}{"_id": insertedId}); err != nil {
+		for _, id := range insertResult.InsertedIDs {
+			documentReturned, err := manager.FindOne(map[string]interface{}{"_id": id})
+			if err != nil {
+				if _, ok := err.(mongo.CommandError); ok {
+					return nil, &libraryErrors.ConnectionError{Db: mongoDb}
+				} else {
 					return nil, err
 				}
 			}
+			documentsInserted = append(documentsInserted, documentReturned)
 		}
 		if _, ok := err.(mongo.CommandError); ok {
-			return nil, &libraryErrors.ConnectionError{Db: mongoDb}
+			return documentsInserted, &libraryErrors.ConnectionError{Db: mongoDb}
 		} else if _, ok := err.(mongo.BulkWriteException); ok {
-			return nil, &libraryErrors.AlreadyExistError{Message: "Document with a key already exists"}
+			return documentsInserted, &libraryErrors.AlreadyExistError{Message: "Document with a key already exists"}
 		} else {
-			return nil, err
+			return documentsInserted, err
 		}
 	}
 
-	insertedIds := insertResult.InsertedIDs
-	var documentsInserted []map[string]interface{}
-	for _, id := range insertedIds {
+	for _, id := range insertResult.InsertedIDs {
 		documentReturned, err := manager.FindOne(map[string]interface{}{"_id": id})
 		if err != nil {
 			if _, ok := err.(mongo.CommandError); ok {
@@ -137,7 +141,7 @@ func (manager *MongoManager) InsertMany(documents []map[string]interface{}) ([]m
 		documentsInserted = append(documentsInserted, documentReturned)
 	}
 
-	return documentsInserted, err
+	return documentsInserted, nil
 }
 
 // FindOne is the function to find just one document that matches with the filter
