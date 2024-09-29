@@ -66,8 +66,8 @@ func (manager *MongoManager) ConnectDb(dbUri, dbName, collection string, timeout
 	return nil
 }
 
-// DisconnectDB is the function inside the MongoManager to disconnect from the MongoDB
-func (manager *MongoManager) DisconnectDB() {
+// DisconnectDb is the function inside the MongoManager to disconnect from the MongoDB
+func (manager *MongoManager) DisconnectDb() {
 	manager.client.Disconnect(context.TODO())
 }
 
