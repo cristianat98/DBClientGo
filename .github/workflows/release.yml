@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - test-release
 
 jobs:
   release:
@@ -14,9 +13,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.PAT_SEMANTIC_RELEASE }}
 
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v4
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
+          GITHUB_TOKEN: ${{ secrets.PAT_SEMANTIC_RELEASE }}
