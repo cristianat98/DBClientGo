@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"errors"
+	"reflect"
 	"time"
 
 	libraryErrors "github.com/cristianat98/dbclientgo/errors"
@@ -65,8 +66,8 @@ func (manager *MongoManager) ConnectDb(dbUri, dbName, collection string, timeout
 	return nil
 }
 
-// DisconnectDB is the function inside the MongoManager to disconnect from the MongoDB
-func (manager *MongoManager) DisconnectDB() {
+// DisconnectDb is the function inside the MongoManager to disconnect from the MongoDB
+func (manager *MongoManager) DisconnectDb() {
 	manager.client.Disconnect(context.TODO())
 }
 
@@ -74,17 +75,16 @@ func (manager *MongoManager) DisconnectDB() {
 // document: It is the document to add in the collection
 // It returns the new document inserted in the collection and an error
 func (manager *MongoManager) InsertOne(document map[string]interface{}) (map[string]interface{}, error) {
-	ctx1, cancel1 := context.WithTimeout(context.Background(), time.Duration(manager.timeout)*time.Second)
-	defer cancel1()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(manager.timeout)*time.Second)
+	defer cancel()
 
-	resultInsert, err := manager.collection.InsertOne(ctx1, document)
+	resultInsert, err := manager.collection.InsertOne(ctx, document)
 	if err != nil {
-		switch err.(type) {
-		case *mongo.CommandError:
+		if _, ok := err.(mongo.CommandError); ok {
 			return nil, &libraryErrors.ConnectionError{Db: mongoDb}
-		case *mongo.WriteErrors:
+		} else if _, ok := err.(mongo.WriteException); ok {
 			return nil, &libraryErrors.AlreadyExistError{Message: "Document with a key already exists"}
-		default:
+		} else {
 			return nil, err
 		}
 	}
@@ -96,38 +96,52 @@ func (manager *MongoManager) InsertOne(document map[string]interface{}) (map[str
 // InsertMany is the function inside the MongoManager to insert many documents in the collection
 // documents: It is the list of documents to insert in the collection
 // It returns the new documents inserted in the collection and an error
-func (manager *MongoManager) InsertMany(documents []interface{}) ([]map[string]interface{}, error) {
+func (manager *MongoManager) InsertMany(documents []map[string]interface{}) ([]map[string]interface{}, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(manager.timeout)*time.Second)
 	defer cancel()
 
-	insertResult, err := manager.collection.InsertMany(ctx, documents)
+	var documentsParsed []interface{}
+	for _, item := range documents {
+		documentsParsed = append(documentsParsed, item)
+	}
+
+	insertResult, err := manager.collection.InsertMany(ctx, documentsParsed)
+	var documentsInserted []map[string]interface{}
+
 	if err != nil {
-		switch err.(type) {
-		case *mongo.CommandError:
-			return nil, &libraryErrors.ConnectionError{Db: mongoDb}
-		case *mongo.WriteErrors:
-			return nil, &libraryErrors.AlreadyExistError{Message: "Document with a key already exists"}
-		default:
-			return nil, err
+		for _, id := range insertResult.InsertedIDs {
+			documentReturned, err := manager.FindOne(map[string]interface{}{"_id": id})
+			if err != nil {
+				if _, ok := err.(mongo.CommandError); ok {
+					return nil, &libraryErrors.ConnectionError{Db: mongoDb}
+				} else {
+					return nil, err
+				}
+			}
+			documentsInserted = append(documentsInserted, documentReturned)
+		}
+		if _, ok := err.(mongo.CommandError); ok {
+			return documentsInserted, &libraryErrors.ConnectionError{Db: mongoDb}
+		} else if _, ok := err.(mongo.BulkWriteException); ok {
+			return documentsInserted, &libraryErrors.AlreadyExistError{Message: "Document with a key already exists"}
+		} else {
+			return documentsInserted, err
 		}
 	}
 
-	insertedIds := insertResult.InsertedIDs
-	var documentsInserted []map[string]interface{}
-	for _, id := range insertedIds {
+	for _, id := range insertResult.InsertedIDs {
 		documentReturned, err := manager.FindOne(map[string]interface{}{"_id": id})
 		if err != nil {
-			switch err.(type) {
-			case *mongo.CommandError:
+			if _, ok := err.(mongo.CommandError); ok {
 				return nil, &libraryErrors.ConnectionError{Db: mongoDb}
-			default:
+			} else {
 				return nil, err
 			}
 		}
 		documentsInserted = append(documentsInserted, documentReturned)
 	}
 
-	return documentsInserted, err
+	return documentsInserted, nil
 }
 
 // FindOne is the function to find just one document that matches with the filter
@@ -139,17 +153,16 @@ func (manager *MongoManager) FindOne(filter map[string]interface{}) (map[string]
 
 	resultFind := manager.collection.FindOne(ctx, filter)
 	if err := resultFind.Err(); err != nil {
-		switch err.(type) {
-		case *mongo.CommandError:
+		if _, ok := err.(mongo.CommandError); ok {
 			return nil, &libraryErrors.ConnectionError{Db: mongoDb}
-		default:
+		} else if reflect.TypeOf(err).String() == "*errors.errorString" {
+			return nil, &libraryErrors.NotExistError{Message: "Document not found"}
+		} else {
 			return nil, err
 		}
 	}
 	var documentReturned bson.M
 	var err = resultFind.Decode(&documentReturned)
-	if err != nil {
-	}
 	return documentReturned, err
 }
 
@@ -163,10 +176,9 @@ func (manager *MongoManager) FindMany(filter map[string]interface{}) ([]map[stri
 	var results []map[string]interface{}
 	cursor, err := manager.collection.Find(ctx, filter)
 	if err != nil {
-		switch err.(type) {
-		case *mongo.CommandError:
+		if _, ok := err.(mongo.CommandError); ok {
 			return nil, &libraryErrors.ConnectionError{Db: mongoDb}
-		default:
+		} else {
 			return nil, err
 		}
 	}
@@ -197,7 +209,13 @@ func (manager *MongoManager) UpdateOne(filter map[string]interface{}, update int
 	var documentReturned bson.M
 	err := manager.collection.FindOneAndUpdate(ctx, filter, bson.M{"$set": m}).Decode(&documentReturned)
 	if err != nil {
-		return nil, err
+		if _, ok := err.(mongo.CommandError); ok {
+			return nil, &libraryErrors.ConnectionError{Db: mongoDb}
+		} else if reflect.TypeOf(err).String() == "*errors.errorString" {
+			return nil, &libraryErrors.NotExistError{Message: "Document not found"}
+		} else {
+			return nil, err
+		}
 	}
 
 	return manager.FindOne(map[string]interface{}{"_id": documentReturned["_id"]})
@@ -236,10 +254,9 @@ func (manager *MongoManager) UpdateMany(filter map[string]interface{}, update in
 	for _, document := range documentsFilter {
 		documentReturned, err := manager.FindOne(map[string]interface{}{"_id": document["_id"]})
 		if err != nil {
-			switch err.(type) {
-			case *mongo.CommandError:
+			if _, ok := err.(mongo.CommandError); ok {
 				return nil, &libraryErrors.ConnectionError{Db: mongoDb}
-			default:
+			} else {
 				return nil, err
 			}
 		}
@@ -258,7 +275,7 @@ func (manager *MongoManager) DeleteOne(filter map[string]interface{}) error {
 
 	result, err := manager.collection.DeleteOne(ctx, filter)
 	if result.DeletedCount == 0 {
-		return errors.New("document not found")
+		return &libraryErrors.NotExistError{Message: "Document not found"}
 	}
 	return err
 }
