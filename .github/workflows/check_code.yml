@@ -72,8 +72,8 @@ jobs:
           RESULT=$(awk -v cov="$COVERAGE" -v thr="$THRESHOLD" 'BEGIN {if (cov < thr) print 1; else print 0}')
 
           if [ "$RESULT" -eq 0 ]; then
-            echo "Coverage ($COVERAGE%) meets the threshold ($THRESHOLD%)"
+            echo "Coverage ($COVERAGE) meets the threshold ($THRESHOLD%)"
           else
-            echo "Coverage ($COVERAGE%) is below the threshold ($THRESHOLD%)"
+            echo "Coverage ($COVERAGE) is below the threshold ($THRESHOLD%)"
             exit 1
           fi

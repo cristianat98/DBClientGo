@@ -205,7 +205,13 @@ func (manager *MongoManager) UpdateOne(filter map[string]interface{}, update int
 	var documentReturned bson.M
 	err := manager.collection.FindOneAndUpdate(ctx, filter, bson.M{"$set": m}).Decode(&documentReturned)
 	if err != nil {
-		return nil, err
+		if _, ok := err.(mongo.CommandError); ok {
+			return nil, &libraryErrors.ConnectionError{Db: mongoDb}
+		} else if reflect.TypeOf(err).String() == "*errors.errorString" {
+			return nil, &libraryErrors.NotExistError{Message: "Document not found"}
+		} else {
+			return nil, err
+		}
 	}
 
 	return manager.FindOne(map[string]interface{}{"_id": documentReturned["_id"]})
@@ -265,7 +271,7 @@ func (manager *MongoManager) DeleteOne(filter map[string]interface{}) error {
 
 	result, err := manager.collection.DeleteOne(ctx, filter)
 	if result.DeletedCount == 0 {
-		return errors.New("document not found")
+		return &libraryErrors.NotExistError{Message: "Document not found"}
 	}
 	return err
 }
