@@ -14,34 +14,34 @@ type MongoManagerMock struct {
 	DeleteManyFunc func(filter map[string]interface{}) (int, error)
 }
 
-func (m *MongoCollectionMock) InsertOne(document map[string]interface{}) (map[string]interface{}, error) {
+func (m *MongoManagerMock) InsertOne(document map[string]interface{}) (map[string]interface{}, error) {
 	return m.InsertOneFunc(document)
 }
 
-func (m *MongoCollectionMock) InsertMany(documents []map[string]interface{}) ([]map[string]interface{}, error) {
+func (m *MongoManagerMock) InsertMany(documents []map[string]interface{}) ([]map[string]interface{}, error) {
 	return m.InsertManyFunc(documents)
 }
 
-func (m *MongoCollectionMock) FindOne(filter map[string]interface{}) (map[string]interface{}, error) {
+func (m *MongoManagerMock) FindOne(filter map[string]interface{}) (map[string]interface{}, error) {
 	return m.FindOneFunc(filter)
 }
 
-func (m *MongoCollectionMock) FindMany(filter map[string]interface{}) ([]map[string]interface{}, error) {
+func (m *MongoManagerMock) FindMany(filter map[string]interface{}) ([]map[string]interface{}, error) {
 	return m.FindManyFunc(filter)
 }
 
-func (m *MongoCollectionMock) UpdateOne(filter map[string]interface{}, update interface{}) (map[string]interface{}, error) {
+func (m *MongoManagerMock) UpdateOne(filter map[string]interface{}, update interface{}) (map[string]interface{}, error) {
 	return m.UpdateOneFunc(filter, update)
 }
 
-func (m *MongoCollectionMock) UpdateMany(filter map[string]interface{}, update interface{}) ([]map[string]interface{}, error) {
+func (m *MongoManagerMock) UpdateMany(filter map[string]interface{}, update interface{}) ([]map[string]interface{}, error) {
 	return m.UpdateManyFunc(filter, update)
 }
 
-func (m *MongoCollectionMock) DeleteOne(filter map[string]interface{}) error {
+func (m *MongoManagerMock) DeleteOne(filter map[string]interface{}) error {
 	return m.DeleteOneFunc(filter)
 }
 
-func (m *MongoCollectionMock) DeleteMany(filter map[string]interface{}) (int, error) {
+func (m *MongoManagerMock) DeleteMany(filter map[string]interface{}) (int, error) {
 	return m.DeleteManyFunc(filter)
 }
