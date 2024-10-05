@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/cristianat98/DBClientGo/compare/v1.1.0...v1.1.1) (2024-10-05)
+
+
+### Bug Fixes
+
+* test tag deleted from files ([6248f23](https://github.com/cristianat98/DBClientGo/commit/6248f236774a95a1a61e057674c2588b9676da99))
+
 # [1.1.0](https://github.com/cristianat98/DBClientGo/compare/v1.0.0...v1.1.0) (2024-10-05)
 
 
