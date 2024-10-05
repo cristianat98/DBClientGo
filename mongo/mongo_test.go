@@ -107,9 +107,12 @@ func TestInsertManyFailedIdAlreadyExists(t *testing.T) {
 	result, err := mongoManager.InsertMany(insertDocuments)
 	assert.NoError(t, err)
 
-	insertDocument1["_id"] = result[0]["_id"]
+	insertDocument2["_id"] = result[1]["_id"]
 	result, err = mongoManager.InsertMany(insertDocuments)
-	assert.Nil(t, result)
+	var expected []map[string]interface{}
+	expected = append(expected, insertDocument1)
+	expected[0]["_id"] = result[0]["_id"]
+	assert.Equal(t, expected, result)
 	var myErr *libraryErrors.AlreadyExistError
 	assert.ErrorAs(t, err, &myErr)
 }
