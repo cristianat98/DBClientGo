@@ -28,3 +28,4 @@ go.work.sum
 .vscode/
 vendor/
 main.go
+coverage
