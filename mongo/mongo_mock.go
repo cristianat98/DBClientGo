@@ -1,14 +1,24 @@
 package mongo
 
 type MongoManagerMock struct {
-	InsertOneFunc  func(document map[string]interface{}) (map[string]interface{}, error)
-	InsertManyFunc func(documents []map[string]interface{}) ([]map[string]interface{}, error)
-	FindOneFunc    func(filter map[string]interface{}) (map[string]interface{}, error)
-	FindManyFunc   func(filter map[string]interface{}) ([]map[string]interface{}, error)
-	UpdateOneFunc  func(filter map[string]interface{}, update interface{}) (map[string]interface{}, error)
-	UpdateManyFunc func(filter map[string]interface{}, update interface{}) ([]map[string]interface{}, error)
-	DeleteOneFunc  func(filter map[string]interface{}) error
-	DeleteManyFunc func(filter map[string]interface{}) (int, error)
+	ConnectDbFunc    func(dbUri, dbName, collection string, timeout int64) error
+	DisconnectDbFunc func()
+	InsertOneFunc    func(document map[string]interface{}) (map[string]interface{}, error)
+	InsertManyFunc   func(documents []map[string]interface{}) ([]map[string]interface{}, error)
+	FindOneFunc      func(filter map[string]interface{}) (map[string]interface{}, error)
+	FindManyFunc     func(filter map[string]interface{}) ([]map[string]interface{}, error)
+	UpdateOneFunc    func(filter map[string]interface{}, update interface{}) (map[string]interface{}, error)
+	UpdateManyFunc   func(filter map[string]interface{}, update interface{}) ([]map[string]interface{}, error)
+	DeleteOneFunc    func(filter map[string]interface{}) error
+	DeleteManyFunc   func(filter map[string]interface{}) (int, error)
+}
+
+func (m *MongoManagerMock) ConnectDb(dbUri, dbName, collection string, timeout int64) error {
+	return m.ConnectDbFunc(dbUri, dbName, collection, timeout)
+}
+
+func (m *MongoManagerMock) DisconnectDb() {
+	m.DisconnectDbFunc()
 }
 
 func (m *MongoManagerMock) InsertOne(document map[string]interface{}) (map[string]interface{}, error) {
