@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/cristianat98/DBClientGo/compare/v1.1.1...v1.2.0) (2024-10-06)
+
+
+### Features
+
+* Interface added ([2c63f41](https://github.com/cristianat98/DBClientGo/commit/2c63f411b56a22755d8147f2c8ee531efeb642fd))
+
 ## [1.1.1](https://github.com/cristianat98/DBClientGo/compare/v1.1.0...v1.1.1) (2024-10-05)
 
 
