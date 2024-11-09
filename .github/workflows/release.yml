@@ -20,18 +20,44 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_SEMANTIC_RELEASE }}
 
-  sonarcloud:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        # Disabling shallow clone is recommended for improving relevancy of reporting
-        fetch-depth: 0
-    - name: SonarCloud Scan
-      uses: sonarsource/sonarcloud-github-action@v3.1.0 # Ex: v2.1.0, See the latest version at https://github.com/marketplace/actions/sonarcloud-scan
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      with:
-        args: >
-          -Dsonar.organization=cristianat98
-          -Dsonar.projectKey=cristianat98_DBClientGo
+
+  # check_code:
+  #   runs-on: ubuntu-latest
+
+  #   services:
+  #     mongo:
+  #       image: mongo:latest
+  #       ports:
+  #         - 27017:27017
+  #       options: >-
+  #         --health-cmd "mongosh --eval 'db.runCommand({ping: 1})'"
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+
+  #     - name: Set up Go
+  #       uses: actions/setup-go@v3
+  #       with:
+  #         go-version: 1.22
+
+  #     - name: Install go-acc
+  #       run: go install github.com/ory/go-acc@latest
+
+  #     - name: Run tests
+  #       run: |
+  #         export MONGO_URI="mongodb://localhost:27017"
+  #         go-acc --tags=test -o coverage.out ./...
+
+  #     - name: SonarCloud Scan
+  #       uses: sonarsource/sonarcloud-github-action@v3.1.0 # Ex: v2.1.0, See the latest version at https://github.com/marketplace/actions/sonarcloud-scan
+  #       env:
+  #         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  #       with:
+  #         args: >
+  #           -Dsonar.organization=cristianat98
+  #           -Dsonar.projectKey=cristianat98_DBClientGo
+  #           -Dsonar.go.coverage.reportPaths=coverage.out
