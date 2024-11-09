@@ -1,16 +1,16 @@
 name: Code Check
 
 on:
-    push:
-      branches:
-        - develop
+    # push:
+    #   branches:
+    #     - develop
     pull_request:
       branches:
         - master
         - develop
 
 jobs:
-  pre-commit:
+  precommit:
     runs-on: ubuntu-latest
 
     steps:
@@ -76,3 +76,15 @@ jobs:
             echo "Coverage ($COVERAGE) is below the threshold ($THRESHOLD%)"
             exit 1
           fi
+
+  sonarcloud:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        # Disabling shallow clone is recommended for improving relevancy of reporting
+        fetch-depth: 0
+    - name: SonarCloud Scan
+      uses: sonarsource/sonarcloud-github-action@<action version> # Ex: v2.1.0, See the latest version at https://github.com/marketplace/actions/sonarcloud-scan
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
