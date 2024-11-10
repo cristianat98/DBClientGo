@@ -15,18 +15,18 @@ import (
 const mongoDb = "MongoDB"
 
 // MongoManagerInterface is the interface defined that the MongoManager needs to follow. It allows to use other structs based on this (i.e. MongoManagerMock)
-// type MongoManagerInterface interface {
-// 	ConnectDb(dbUri, dbName, collection string, timeout int64) error
-// 	DisconnectDb()
-// 	InsertOne(document map[string]interface{}) (map[string]interface{}, error)
-// 	InsertMany(documents []map[string]interface{}) ([]map[string]interface{}, error)
-// 	FindOne(filter map[string]interface{}) (map[string]interface{}, error)
-// 	FindMany(filter map[string]interface{}) ([]map[string]interface{}, error)
-// 	UpdateOne(filter map[string]interface{}, update interface{}) (map[string]interface{}, error)
-// 	UpdateMany(filter map[string]interface{}, update interface{}) ([]map[string]interface{}, error)
-// 	DeleteOne(filter map[string]interface{}) error
-// 	DeleteMany(filter map[string]interface{}) (int, error)
-// }
+type MongoManagerInterface interface {
+	ConnectDb(dbUri, dbName, collection string, timeout int64) error
+	DisconnectDb()
+	InsertOne(document map[string]interface{}) (map[string]interface{}, error)
+	InsertMany(documents []map[string]interface{}) ([]map[string]interface{}, error)
+	FindOne(filter map[string]interface{}) (map[string]interface{}, error)
+	FindMany(filter map[string]interface{}) ([]map[string]interface{}, error)
+	UpdateOne(filter map[string]interface{}, update interface{}) (map[string]interface{}, error)
+	UpdateMany(filter map[string]interface{}, update interface{}) ([]map[string]interface{}, error)
+	DeleteOne(filter map[string]interface{}) error
+	DeleteMany(filter map[string]interface{}) (int, error)
+}
 
 // MongoManager is the structure to manage the connections and operations to the MongoDB
 // client: It is directly the client to the MongoDB

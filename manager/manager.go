@@ -13,12 +13,12 @@ const MONGO = "MONGO"
 type DatabaseInterface interface {
 	ConnectDb(dbUri, dbName, collection string, timeout int64) error
 	DisconnectDb()
-	InsertOne(document map[string]interface{}) (map[string]interface{}, error)
-	InsertMany(documents []map[string]interface{}) ([]map[string]interface{}, error)
+	InsertOne(data map[string]interface{}) (map[string]interface{}, error)
+	InsertMany(data []map[string]interface{}) ([]map[string]interface{}, error)
 	FindOne(filter map[string]interface{}) (map[string]interface{}, error)
 	FindMany(filter map[string]interface{}) ([]map[string]interface{}, error)
-	UpdateOne(filter map[string]interface{}, update interface{}) (map[string]interface{}, error)
-	UpdateMany(filter map[string]interface{}, update interface{}) ([]map[string]interface{}, error)
+	UpdateOne(filter map[string]interface{}, newData interface{}) (map[string]interface{}, error)
+	UpdateMany(filter map[string]interface{}, newData interface{}) ([]map[string]interface{}, error)
 	DeleteOne(filter map[string]interface{}) error
 	DeleteMany(filter map[string]interface{}) (int, error)
 }
@@ -30,7 +30,6 @@ type DatabaseInterface interface {
 type Opts struct {
 	collection string
 	timeout    int64
-	rollback   bool
 }
 
 // Structure to define the DatabaseManager that will integrate all the DB Managers
