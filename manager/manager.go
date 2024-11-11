@@ -42,7 +42,7 @@ func CreateDatabaseManager(dbUri, dbName, dbType string, timeout int64) (*Databa
 		}
 		databaseManager.dbClient = dbClient
 	} else {
-		return nil, &libraryErrors.NotExistError{Message: fmt.Sprintf("DB of type %s does not exist", dbType)}
+		return nil, &libraryErrors.InputError{Message: fmt.Sprintf("DB of type %s does not exist", dbType)}
 	}
 
 	return databaseManager, nil

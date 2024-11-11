@@ -39,6 +39,23 @@ func initializeDb() (*MongoManager, error) {
 	return mongoManager, nil
 }
 
+func TestConnectDbSuccess(t *testing.T) {
+	mongoUri := os.Getenv("MONGO_URI")
+	assert.NotEqual(t, "", mongoUri)
+
+	mongoManager := new(MongoManager)
+	err := mongoManager.ConnectDb(mongoUri, dbTest, timeoutTest)
+	assert.NoError(t, err)
+	mongoManager.DisconnectDb()
+}
+
+func TestConnectDbFailedConnectionError(t *testing.T) {
+	mongoManager := new(MongoManager)
+	err := mongoManager.ConnectDb("mongodb://test", dbTest, 1)
+	var myErr *libraryErrors.ConnectionError
+	assert.ErrorAs(t, err, &myErr)
+}
+
 func TestInsertOneSuccess(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
