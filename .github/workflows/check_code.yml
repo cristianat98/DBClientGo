@@ -73,4 +73,4 @@ jobs:
             -Dsonar.organization=cristianat98
             -Dsonar.projectKey=cristianat98_DBClientGo
             -Dsonar.go.coverage.reportPaths=coverage.out
-            -Dsonar.go.coverage.exclusions=**/*_test.go, **/*_mock.go
+            -Dsonar.test.inclusions=**/*_test.go, **/*_mock.go
