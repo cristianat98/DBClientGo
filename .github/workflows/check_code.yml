@@ -1,13 +1,13 @@
 name: Code Check
 
 on:
-    push:
-      branches:
-        - master
-    pull_request:
-      branches:
-        - master
-        - develop
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+      - develop
 
 jobs:
   precommit:
@@ -74,3 +74,4 @@ jobs:
             -Dsonar.projectKey=cristianat98_DBClientGo
             -Dsonar.go.coverage.reportPaths=coverage.out
             -Dsonar.test.inclusions=**/*_test.go
+            -Dsonar.coverage.exclusions=**/*_mock.go
