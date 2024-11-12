@@ -1,3 +1,16 @@
+# [1.3.0](https://github.com/cristianat98/DBClientGo/compare/v1.2.0...v1.3.0) (2024-11-12)
+
+
+### Bug Fixes
+
+* test tag deleted from files ([ce642f2](https://github.com/cristianat98/DBClientGo/commit/ce642f2645608cbac8d539a3608d1037aea4277b))
+
+
+### Features
+
+* DatabaseInterface included ([#19](https://github.com/cristianat98/DBClientGo/issues/19)) ([7ebf14a](https://github.com/cristianat98/DBClientGo/commit/7ebf14a448e4e51bf9867b9ecc111dbd42cc1df7))
+* Interface added ([44c050c](https://github.com/cristianat98/DBClientGo/commit/44c050c81a1d1d315c60d7e96a3cbbe78c05797b))
+
 # [1.2.0](https://github.com/cristianat98/DBClientGo/compare/v1.1.1...v1.2.0) (2024-10-06)
 
 
