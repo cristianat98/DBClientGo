@@ -25,3 +25,11 @@ type NotExistError struct {
 func (e *NotExistError) Error() string {
 	return e.Message
 }
+
+type InputError struct {
+	Message string
+}
+
+func (e *InputError) Error() string {
+	return e.Message
+}

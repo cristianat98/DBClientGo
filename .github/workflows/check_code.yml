@@ -1,16 +1,16 @@
 name: Code Check
 
 on:
-    push:
-      branches:
-        - develop
-    pull_request:
-      branches:
-        - master
-        - develop
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+      - develop
 
 jobs:
-  pre-commit:
+  precommit:
     runs-on: ubuntu-latest
 
     steps:
@@ -33,7 +33,7 @@ jobs:
       - name: Run pre-commit
         run: pre-commit run --all-files
 
-  tests:
+  analysis:
     runs-on: ubuntu-latest
 
     services:
@@ -64,15 +64,14 @@ jobs:
           export MONGO_URI="mongodb://localhost:27017"
           go-acc --tags=test -o coverage.out ./...
 
-      - name: Verify coverage
-        run: |
-          COVERAGE=$(go tool cover -func=./coverage.out | grep total: | awk '{print $3}')
-          THRESHOLD=70.0
-          RESULT=$(awk -v cov="$COVERAGE" -v thr="$THRESHOLD" 'BEGIN {if (cov < thr) print 1; else print 0}')
-
-          if [ "$RESULT" -eq 0 ]; then
-            echo "Coverage ($COVERAGE) meets the threshold ($THRESHOLD%)"
-          else
-            echo "Coverage ($COVERAGE) is below the threshold ($THRESHOLD%)"
-            exit 1
-          fi
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarcloud-github-action@v3.1.0 # Ex: v2.1.0, See the latest version at https://github.com/marketplace/actions/sonarcloud-scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.organization=cristianat98
+            -Dsonar.projectKey=cristianat98_DBClientGo
+            -Dsonar.go.coverage.reportPaths=coverage.out
+            -Dsonar.test.inclusions=**/*_test.go
+            -Dsonar.coverage.exclusions=**/*_mock.go
