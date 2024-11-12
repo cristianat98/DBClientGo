@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/cristianat98/DBClientGo/compare/v1.3.0...v1.3.1) (2024-11-12)
+
+
+### Bug Fixes
+
+* MongoMock deleted ([4bc3ca5](https://github.com/cristianat98/DBClientGo/commit/4bc3ca58b00808f963951e67261f4c9b1bb3e33c))
+
 # [1.3.0](https://github.com/cristianat98/DBClientGo/compare/v1.2.0...v1.3.0) (2024-11-12)
 
 
