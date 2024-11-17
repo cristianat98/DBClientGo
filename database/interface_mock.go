@@ -1,4 +1,4 @@
-package manager
+package database
 
 type DatabaseInterfaceMock struct {
 	ConnectDbFunc    func(dbUri, dbName string, timeout int64) error
