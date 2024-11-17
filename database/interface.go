@@ -1,4 +1,4 @@
-package manager
+package database
 
 // Interface that all the DBs Manager must follow
 type DatabaseInterface interface {
