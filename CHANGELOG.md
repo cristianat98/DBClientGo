@@ -1,3 +1,10 @@
+## [1.3.2](https://github.com/cristianat98/DBClientGo/compare/v1.3.1...v1.3.2) (2024-11-17)
+
+
+### Bug Fixes
+
+* Package naming for DatabaseInterface ([#27](https://github.com/cristianat98/DBClientGo/issues/27)) ([be9e684](https://github.com/cristianat98/DBClientGo/commit/be9e684f356ee2db9e790d778f3ba7069f0dd288))
+
 ## [1.3.1](https://github.com/cristianat98/DBClientGo/compare/v1.3.0...v1.3.1) (2024-11-12)
 
 
