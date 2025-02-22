@@ -2,7 +2,7 @@ package database
 
 // Interface that all the DBs Manager must follow
 type DatabaseInterface interface {
-	ConnectDb(dbUri, dbName string, timeout int64) error
+	ConnectDb(dbURI, dbName string, timeout int64) error
 	DisconnectDb() error
 	InsertOne(table string, timeout int64, data map[string]interface{}) (map[string]interface{}, error)
 	InsertMany(table string, timeout int64, data []map[string]interface{}) ([]map[string]interface{}, error)

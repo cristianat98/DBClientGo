@@ -16,9 +16,9 @@ const (
 )
 
 func initializeDb() (*MongoManager, error) {
-	mongoURI := os.Getenv("MONGO_URI")
+	mongoURI := os.Getenv("Mongo_URI")
 	if mongoURI == "" {
-		return nil, errors.New("MONGO_URI is not set")
+		return nil, errors.New("Mongo_URI is not set")
 	}
 	mongoManager, err := CreateMongoManager(mongoURI, dbTest, timeoutTest)
 	if err != nil {
@@ -42,7 +42,7 @@ func initializeDb() (*MongoManager, error) {
 }
 
 func TestConnectDbSuccess(t *testing.T) {
-	mongoURI := os.Getenv("MONGO_URI")
+	mongoURI := os.Getenv("Mongo_URI")
 	assert.NotEqual(t, "", mongoURI)
 
 	mongoManager := new(MongoManager)
