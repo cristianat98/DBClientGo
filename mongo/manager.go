@@ -29,7 +29,7 @@ type MongoManager struct {
 // timeout: It is the time to define the timeout inside the MongoManager
 // It returns the MongoManager instance and an error
 func CreateMongoManager(dbUri, dbName string, timeout int64) (*MongoManager, error) {
-	var mongoManager = new(MongoManager)
+	mongoManager := new(MongoManager)
 	if err := mongoManager.ConnectDb(dbUri, dbName, timeout); err != nil {
 		return nil, err
 	}
@@ -66,8 +66,8 @@ func (manager *MongoManager) ConnectDb(dbUri, dbName string, timeout int64) erro
 }
 
 // DisconnectDb is the function inside the MongoManager to disconnect from the MongoDB
-func (manager *MongoManager) DisconnectDb() {
-	manager.client.Disconnect(context.TODO())
+func (manager *MongoManager) DisconnectDb() error {
+	return manager.client.Disconnect(context.TODO())
 }
 
 // InsertOne is the function inside the MongoManager to insert a document in the collection
@@ -176,7 +176,7 @@ func (manager *MongoManager) FindOne(collection string, timeout int64, filter ma
 		}
 	}
 	var documentReturned bson.M
-	var err = resultFind.Decode(&documentReturned)
+	err := resultFind.Decode(&documentReturned)
 	return documentReturned, err
 }
 
