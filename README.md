@@ -7,7 +7,7 @@ Repo to host a Go library for creating clients for different DBs (MongoDB, Postg
 The repo contains an Interface called DatabaseInterface (in the database). The different clients must follow this interface and they are considered Managers. Each independent manager should also try to use the same error types and messages to create the lowest possible work when the database is changed in the project.
 
 The current clients integrated are the following, with its respective manager names:
-- MongoDB (MongoManager)
+- MongoDB (Manager)
 
 Each manager has a constructor to create the object, but it is not mandatory to use it, given that it is possible to create the client from "scratch". Also, each manager contains self-tests to make sure the funcionality of each function works as expected.
 
@@ -31,7 +31,7 @@ An example of using a Manager is as follows:
 ```go
 // Create the Manager instance (each Manager may have different inputs for the constructor)
 // It will try to connect to the DB.
-mongoManager, err = CreateMongoManager("dbURI", "dbName", 5)
+mongoManager, err = CreateManager("dbURI", "dbName", 5)
 if err != nil {
     // Code when error is raised
 }
@@ -74,4 +74,4 @@ If you are interested on contributing in the code, fork the repository, modify t
 
 ## Licence
 
-License used is GPLv3.
+This project is licensed under the terms of the [GNU General Public License v3.0 (GPLv3)](https://www.gnu.org/licenses/gpl-3.0.html).

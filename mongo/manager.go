@@ -13,33 +13,33 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// MongoManager is the structure to manage the connections and operations to the MongoDB
+// Manager is the structure to manage the connections and operations to the MongoDB
 // client: It is directly the client to the MongoDB
 // database: It is the database to connect in MongoDB
-type MongoManager struct {
+type Manager struct {
 	client   *mongo.Client
 	database *mongo.Database
 }
 
-// CreateMongoManager is the constructor for the MongoManager. If it can not connect to the MongoDB, it will fail
+// CreateManager is the constructor for the Manager. If it can not connect to the MongoDB, it will fail
 // dbURI: It is the URI to connect to the MongoDB
 // dbName: It is the name of the DB inside the MongoDB
-// timeout: It is the time to define the timeout inside the MongoManager
-// It returns the MongoManager instance and an error
-func CreateMongoManager(dbURI, dbName string, timeout int64) (*MongoManager, error) {
-	mongoManager := new(MongoManager)
+// timeout: It is the time to define the timeout inside the Manager
+// It returns the Manager instance and an error
+func CreateManager(dbURI, dbName string, timeout int64) (*Manager, error) {
+	mongoManager := new(Manager)
 	if err := mongoManager.ConnectDb(dbURI, dbName, timeout); err != nil {
 		return nil, err
 	}
 	return mongoManager, nil
 }
 
-// ConnectDb is the function inside the MongoManager to connect to the MongoDB
+// ConnectDb is the function inside the Manager to connect to the MongoDB
 // dbURI: It is the URI to connect to the MongoDB
 // dbName: It is the name of the DB inside the MongoDB
-// timeout: It is the time to define the timeout inside the MongoManager
+// timeout: It is the time to define the timeout inside the Manager
 // It returns an error in case there was some error
-func (manager *MongoManager) ConnectDb(dbURI, dbName string, timeout int64) error {
+func (manager *Manager) ConnectDb(dbURI, dbName string, timeout int64) error {
 	if timeout < 1 {
 		return &libraryErrors.InputError{Message: fmt.Sprintf(timeoutMessage, timeout)}
 	}
@@ -63,17 +63,17 @@ func (manager *MongoManager) ConnectDb(dbURI, dbName string, timeout int64) erro
 	return nil
 }
 
-// DisconnectDb is the function inside the MongoManager to disconnect from the MongoDB
-func (manager *MongoManager) DisconnectDb() error {
+// DisconnectDb is the function inside the Manager to disconnect from the MongoDB
+func (manager *Manager) DisconnectDb() error {
 	return manager.client.Disconnect(context.TODO())
 }
 
-// InsertOne is the function inside the MongoManager to insert a document in the collection
+// InsertOne is the function inside the Manager to insert a document in the collection
 // collection: Name of the collection to insert a document
-// timeout: It is the time to define the timeout inside the MongoManager
+// timeout: It is the time to define the timeout inside the Manager
 // document: It is the document to add in the collection
 // It returns the new document inserted in the collection and an error
-func (manager *MongoManager) InsertOne(collection string, timeout int64, document map[string]interface{}) (map[string]interface{}, error) {
+func (manager *Manager) InsertOne(collection string, timeout int64, document map[string]interface{}) (map[string]interface{}, error) {
 	if timeout < 1 {
 		return nil, &libraryErrors.InputError{Message: fmt.Sprintf(timeoutMessage, timeout)}
 	}
@@ -95,12 +95,12 @@ func (manager *MongoManager) InsertOne(collection string, timeout int64, documen
 	return documentReturned, err
 }
 
-// InsertMany is the function inside the MongoManager to insert many documents in the collection
+// InsertMany is the function inside the Manager to insert many documents in the collection
 // collection: Name of the collection to insert many documents
-// timeout: It is the time to define the timeout inside the MongoManager
+// timeout: It is the time to define the timeout inside the Manager
 // documents: It is the list of documents to insert in the collection
 // It returns the new documents inserted in the collection and an error
-func (manager *MongoManager) InsertMany(collection string, timeout int64, documents []map[string]interface{}) ([]map[string]interface{}, error) {
+func (manager *Manager) InsertMany(collection string, timeout int64, documents []map[string]interface{}) ([]map[string]interface{}, error) {
 	if timeout < 1 {
 		return nil, &libraryErrors.InputError{Message: fmt.Sprintf(timeoutMessage, timeout)}
 	}
@@ -141,10 +141,10 @@ func (manager *MongoManager) InsertMany(collection string, timeout int64, docume
 
 // FindOne is the function to find just one document that matches with the filter
 // collection: Name of the collection to find a document
-// timeout: It is the time to define the timeout inside the MongoManager
+// timeout: It is the time to define the timeout inside the Manager
 // filter: It is the filter to find the document inside the MongoDB
 // It returns the first document matching with the filter and an error
-func (manager *MongoManager) FindOne(collection string, timeout int64, filter map[string]interface{}) (map[string]interface{}, error) {
+func (manager *Manager) FindOne(collection string, timeout int64, filter map[string]interface{}) (map[string]interface{}, error) {
 	if timeout < 1 {
 		return nil, &libraryErrors.InputError{Message: fmt.Sprintf(timeoutMessage, timeout)}
 	}
@@ -166,12 +166,12 @@ func (manager *MongoManager) FindOne(collection string, timeout int64, filter ma
 	return documentReturned, err
 }
 
-// FindMany is the function inside the MongoManager to return a list of documents that match the filter defined
+// FindMany is the function inside the Manager to return a list of documents that match the filter defined
 // collection: Name of the collection to find many documents
-// timeout: It is the time to define the timeout inside the MongoManager
+// timeout: It is the time to define the timeout inside the Manager
 // filter: It is the filter to find documents inside the MongoDB
 // It returns a list of documents (it may be empty) and an error
-func (manager *MongoManager) FindMany(collection string, timeout int64, filter map[string]interface{}) ([]map[string]interface{}, error) {
+func (manager *Manager) FindMany(collection string, timeout int64, filter map[string]interface{}) ([]map[string]interface{}, error) {
 	if timeout < 1 {
 		return nil, &libraryErrors.InputError{Message: fmt.Sprintf(timeoutMessage, timeout)}
 	}
@@ -183,9 +183,9 @@ func (manager *MongoManager) FindMany(collection string, timeout int64, filter m
 	if err != nil {
 		if _, ok := err.(mongo.CommandError); ok {
 			return nil, &libraryErrors.ConnectionError{Db: mongoDB}
-		} else {
-			return nil, err
 		}
+		return nil, err
+
 	}
 	defer cursor.Close(ctx)
 	for cursor.Next(ctx) {
@@ -198,13 +198,13 @@ func (manager *MongoManager) FindMany(collection string, timeout int64, filter m
 	return results, err
 }
 
-// UpdateOne is the function inside the MongoManager to update the first document that matches with the filter defined
+// UpdateOne is the function inside the Manager to update the first document that matches with the filter defined
 // collection: Name of the collection to update a document
-// timeout: It is the time to define the timeout inside the MongoManager
+// timeout: It is the time to define the timeout inside the Manager
 // filter: It is the filter to find documents inside the MongoDB to update
 // update: It contains the new changes to apply in the document
 // It returns the document updated and an error
-func (manager *MongoManager) UpdateOne(collection string, timeout int64, filter map[string]interface{}, update interface{}) (map[string]interface{}, error) {
+func (manager *Manager) UpdateOne(collection string, timeout int64, filter map[string]interface{}, update interface{}) (map[string]interface{}, error) {
 	if timeout < 1 {
 		return nil, &libraryErrors.InputError{Message: fmt.Sprintf(timeoutMessage, timeout)}
 	}
@@ -223,9 +223,8 @@ func (manager *MongoManager) UpdateOne(collection string, timeout int64, filter 
 			return nil, &libraryErrors.ConnectionError{Db: mongoDB}
 		} else if reflect.TypeOf(err).String() == "*errors.errorString" {
 			return nil, &libraryErrors.NotExistError{Message: documentNotFoundMessage}
-		} else {
-			return nil, err
 		}
+		return nil, err
 	}
 
 	return manager.FindOne(collection, timeout, map[string]interface{}{"_id": documentReturned["_id"]})
@@ -233,11 +232,11 @@ func (manager *MongoManager) UpdateOne(collection string, timeout int64, filter 
 
 // UpdateMany is the function for updating multiple documents that match the filter
 // collection: Name of the collection to update many documents
-// timeout: It is the time to define the timeout inside the MongoManager
+// timeout: It is the time to define the timeout inside the Manager
 // filter: It is the filter to find the documents
 // update: The new content for the documents found
 // It returns the documents updated and an error
-func (manager *MongoManager) UpdateMany(collection string, timeout int64, filter map[string]interface{}, update interface{}) ([]map[string]interface{}, error) {
+func (manager *Manager) UpdateMany(collection string, timeout int64, filter map[string]interface{}, update interface{}) ([]map[string]interface{}, error) {
 	if timeout < 1 {
 		return nil, &libraryErrors.InputError{Message: fmt.Sprintf(timeoutMessage, timeout)}
 	}
@@ -280,12 +279,12 @@ func (manager *MongoManager) UpdateMany(collection string, timeout int64, filter
 	return documentsModified, err
 }
 
-// DeleteOne is the function inside the MongoManager to delete the first document that matches with the filter
+// DeleteOne is the function inside the Manager to delete the first document that matches with the filter
 // collection: Name of the collection to delete a document
-// timeout: It is the time to define the timeout inside the MongoManager
+// timeout: It is the time to define the timeout inside the Manager
 // filter: It is the filter to find the document to delete
 // It returns an error in case a document was not deleted
-func (manager *MongoManager) DeleteOne(collection string, timeout int64, filter map[string]interface{}) error {
+func (manager *Manager) DeleteOne(collection string, timeout int64, filter map[string]interface{}) error {
 	if timeout < 1 {
 		return &libraryErrors.InputError{Message: fmt.Sprintf(timeoutMessage, timeout)}
 	}
@@ -299,12 +298,12 @@ func (manager *MongoManager) DeleteOne(collection string, timeout int64, filter 
 	return err
 }
 
-// DeleteMany is the function inside the MongoManager to delete all the documents that match with the filter
+// DeleteMany is the function inside the Manager to delete all the documents that match with the filter
 // collection: Name of the collection to delete many documents
-// timeout: It is the time to define the timeout inside the MongoManager
+// timeout: It is the time to define the timeout inside the Manager
 // filter: It is the filter to find the documents to delete
 // It returns the number of documents deleted and an error
-func (manager *MongoManager) DeleteMany(collection string, timeout int64, filter map[string]interface{}) (int, error) {
+func (manager *Manager) DeleteMany(collection string, timeout int64, filter map[string]interface{}) (int, error) {
 	if timeout < 1 {
 		return 0, &libraryErrors.InputError{Message: fmt.Sprintf(timeoutMessage, timeout)}
 	}

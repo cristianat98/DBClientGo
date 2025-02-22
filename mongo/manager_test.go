@@ -15,12 +15,12 @@ const (
 	collectionTest = "test"
 )
 
-func initializeDb() (*MongoManager, error) {
+func initializeDb() (*Manager, error) {
 	mongoURI := os.Getenv("Mongo_URI")
 	if mongoURI == "" {
 		return nil, errors.New("Mongo_URI is not set")
 	}
-	mongoManager, err := CreateMongoManager(mongoURI, dbTest, timeoutTest)
+	mongoManager, err := CreateManager(mongoURI, dbTest, timeoutTest)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func TestConnectDbSuccess(t *testing.T) {
 	mongoURI := os.Getenv("Mongo_URI")
 	assert.NotEqual(t, "", mongoURI)
 
-	mongoManager := new(MongoManager)
+	mongoManager := new(Manager)
 	err := mongoManager.ConnectDb(mongoURI, dbTest, timeoutTest)
 	assert.NoError(t, err)
 	err = mongoManager.DisconnectDb()
@@ -53,7 +53,7 @@ func TestConnectDbSuccess(t *testing.T) {
 }
 
 func TestConnectDbFailedConnectionError(t *testing.T) {
-	mongoManager := new(MongoManager)
+	mongoManager := new(Manager)
 	err := mongoManager.ConnectDb("mongodb://test", dbTest, 1)
 	var myErr *libraryErrors.ConnectionError
 	assert.ErrorAs(t, err, &myErr)
