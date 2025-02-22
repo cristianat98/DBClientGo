@@ -30,6 +30,9 @@ jobs:
       - name: Install pre-commit hooks
         run: pre-commit install
 
+      - name: Install go-pre-commit
+        run: go install github.com/lietu/go-pre-commit@latest
+
       - name: Run pre-commit
         run: pre-commit run --all-files
 
