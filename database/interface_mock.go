@@ -1,8 +1,8 @@
 package database
 
 type DatabaseInterfaceMock struct {
-	ConnectDbFunc    func(dbUri, dbName string, timeout int64) error
-	DisconnectDbFunc func()
+	ConnectDbFunc    func(dbURI, dbName string, timeout int64) error
+	DisconnectDbFunc func() error
 	InsertOneFunc    func(table string, timeout int64, data map[string]interface{}) (map[string]interface{}, error)
 	InsertManyFunc   func(table string, timeout int64, data []map[string]interface{}) ([]map[string]interface{}, error)
 	FindOneFunc      func(table string, timeout int64, filter map[string]interface{}) (map[string]interface{}, error)
@@ -13,12 +13,12 @@ type DatabaseInterfaceMock struct {
 	DeleteManyFunc   func(table string, timeout int64, filter map[string]interface{}) (int, error)
 }
 
-func (m *DatabaseInterfaceMock) ConnectDb(dbUri, dbName string, timeout int64) error {
-	return m.ConnectDbFunc(dbUri, dbName, timeout)
+func (m *DatabaseInterfaceMock) ConnectDb(dbURI, dbName string, timeout int64) error {
+	return m.ConnectDbFunc(dbURI, dbName, timeout)
 }
 
-func (m *DatabaseInterfaceMock) DisconnectDb() {
-	m.DisconnectDbFunc()
+func (m *DatabaseInterfaceMock) DisconnectDb() error {
+	return m.DisconnectDbFunc()
 }
 
 func (m *DatabaseInterfaceMock) InsertOne(table string, timeout int64, data map[string]interface{}) (map[string]interface{}, error) {

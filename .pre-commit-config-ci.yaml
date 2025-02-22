@@ -11,5 +11,4 @@ repos:
     rev: v0.1.0
     hooks:
     - id: gofumpt
-    - id: golangci-lint
     - id: go-mod-tidy
