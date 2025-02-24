@@ -9,16 +9,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const timeoutTest = 5
-const dbTest = "test"
-const collectionTest = "test"
+const (
+	timeoutTest    = 5
+	dbTest         = "test"
+	collectionTest = "test"
+)
 
-func initializeDb() (*MongoManager, error) {
-	mongoUri := os.Getenv("MONGO_URI")
-	if mongoUri == "" {
-		return nil, errors.New("MONGO_URI is not set")
+func initializeDb() (*Manager, error) {
+	mongoURI := os.Getenv("Mongo_URI")
+	if mongoURI == "" {
+		return nil, errors.New("Mongo_URI is not set")
 	}
-	mongoManager, err := CreateMongoManager(mongoUri, dbTest, timeoutTest)
+	mongoManager, err := CreateManager(mongoURI, dbTest, timeoutTest)
 	if err != nil {
 		return nil, err
 	}
@@ -40,17 +42,18 @@ func initializeDb() (*MongoManager, error) {
 }
 
 func TestConnectDbSuccess(t *testing.T) {
-	mongoUri := os.Getenv("MONGO_URI")
-	assert.NotEqual(t, "", mongoUri)
+	mongoURI := os.Getenv("Mongo_URI")
+	assert.NotEqual(t, "", mongoURI)
 
-	mongoManager := new(MongoManager)
-	err := mongoManager.ConnectDb(mongoUri, dbTest, timeoutTest)
+	mongoManager := new(Manager)
+	err := mongoManager.ConnectDb(mongoURI, dbTest, timeoutTest)
 	assert.NoError(t, err)
-	mongoManager.DisconnectDb()
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
 
 func TestConnectDbFailedConnectionError(t *testing.T) {
-	mongoManager := new(MongoManager)
+	mongoManager := new(Manager)
 	err := mongoManager.ConnectDb("mongodb://test", dbTest, 1)
 	var myErr *libraryErrors.ConnectionError
 	assert.ErrorAs(t, err, &myErr)
@@ -59,7 +62,6 @@ func TestConnectDbFailedConnectionError(t *testing.T) {
 func TestInsertOneSuccess(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
-	defer mongoManager.DisconnectDb()
 
 	insertDocument := map[string]interface{}{
 		"test": "test",
@@ -69,12 +71,14 @@ func TestInsertOneSuccess(t *testing.T) {
 	expected["_id"] = result["_id"]
 	assert.NoError(t, err)
 	assert.Equal(t, expected, result)
+
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
 
 func TestInsertOneFailedIdAlreadyExists(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
-	defer mongoManager.DisconnectDb()
 
 	insertDocument := map[string]interface{}{
 		"test": "test",
@@ -87,12 +91,14 @@ func TestInsertOneFailedIdAlreadyExists(t *testing.T) {
 	assert.Nil(t, result)
 	var myErr *libraryErrors.AlreadyExistError
 	assert.ErrorAs(t, err, &myErr)
+
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
 
 func TestInsertOneFailedInvalidTimeout(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
-	defer mongoManager.DisconnectDb()
 
 	insertDocument := map[string]interface{}{
 		"test": "test",
@@ -101,12 +107,14 @@ func TestInsertOneFailedInvalidTimeout(t *testing.T) {
 	assert.Nil(t, result)
 	var myErr *libraryErrors.InputError
 	assert.ErrorAs(t, err, &myErr)
+
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
 
 func TestInsertManySuccess(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
-	defer mongoManager.DisconnectDb()
 
 	var insertDocuments []map[string]interface{}
 	insertDocument1 := map[string]interface{}{
@@ -124,12 +132,14 @@ func TestInsertManySuccess(t *testing.T) {
 		expected["_id"] = item["_id"]
 		assert.Equal(t, expected, item)
 	}
+
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
 
 func TestInsertManyFailedIdAlreadyExists(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
-	defer mongoManager.DisconnectDb()
 
 	var insertDocuments []map[string]interface{}
 	insertDocument1 := map[string]interface{}{
@@ -151,12 +161,14 @@ func TestInsertManyFailedIdAlreadyExists(t *testing.T) {
 	assert.Equal(t, expected, result)
 	var myErr *libraryErrors.AlreadyExistError
 	assert.ErrorAs(t, err, &myErr)
+
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
 
 func TestInsertManyFailedInvalidTimeout(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
-	defer mongoManager.DisconnectDb()
 
 	var insertDocuments []map[string]interface{}
 	insertDocument1 := map[string]interface{}{
@@ -171,12 +183,14 @@ func TestInsertManyFailedInvalidTimeout(t *testing.T) {
 	assert.Nil(t, result)
 	var myErr *libraryErrors.InputError
 	assert.ErrorAs(t, err, &myErr)
+
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
 
 func TestFindOneSuccess(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
-	defer mongoManager.DisconnectDb()
 
 	insertDocument := map[string]interface{}{
 		"test": "test",
@@ -187,12 +201,14 @@ func TestFindOneSuccess(t *testing.T) {
 	resultFind, err := mongoManager.FindOne(collectionTest, timeoutTest, insertDocument)
 	assert.NoError(t, err)
 	assert.Equal(t, resultInsert, resultFind)
+
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
 
 func TestFindOneFailedNoExist(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
-	defer mongoManager.DisconnectDb()
 
 	document := map[string]interface{}{
 		"test": "test",
@@ -202,12 +218,14 @@ func TestFindOneFailedNoExist(t *testing.T) {
 	assert.Nil(t, result)
 	var myErr *libraryErrors.NotExistError
 	assert.ErrorAs(t, err, &myErr)
+
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
 
 func TestFindOneFailedInvalidTimeout(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
-	defer mongoManager.DisconnectDb()
 
 	document := map[string]interface{}{
 		"test": "test",
@@ -216,12 +234,14 @@ func TestFindOneFailedInvalidTimeout(t *testing.T) {
 	assert.Nil(t, result)
 	var myErr *libraryErrors.InputError
 	assert.ErrorAs(t, err, &myErr)
+
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
 
 func TestFindManySuccess(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
-	defer mongoManager.DisconnectDb()
 
 	var insertDocuments []map[string]interface{}
 	insertDocument := map[string]interface{}{
@@ -235,12 +255,14 @@ func TestFindManySuccess(t *testing.T) {
 	resultFind, err := mongoManager.FindMany(collectionTest, timeoutTest, insertDocument)
 	assert.NoError(t, err)
 	assert.Equal(t, resultInsert, resultFind)
+
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
 
 func TestFindManyFailedInvalidTimeout(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
-	defer mongoManager.DisconnectDb()
 
 	document := map[string]interface{}{
 		"test": "test",
@@ -249,12 +271,14 @@ func TestFindManyFailedInvalidTimeout(t *testing.T) {
 	assert.Nil(t, result)
 	var myErr *libraryErrors.InputError
 	assert.ErrorAs(t, err, &myErr)
+
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
 
 func TestUpdateOneSuccess(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
-	defer mongoManager.DisconnectDb()
 
 	insertDocument := map[string]interface{}{
 		"test": "test",
@@ -270,12 +294,14 @@ func TestUpdateOneSuccess(t *testing.T) {
 	expected["test"] = "test2"
 	assert.NoError(t, err)
 	assert.Equal(t, expected, resultUpdate)
+
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
 
 func TestUpdateOneAddFieldSuccess(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
-	defer mongoManager.DisconnectDb()
 
 	insertDocument := map[string]interface{}{
 		"test": "test",
@@ -291,34 +317,40 @@ func TestUpdateOneAddFieldSuccess(t *testing.T) {
 	expected["test2"] = "test2"
 	assert.NoError(t, err)
 	assert.Equal(t, expected, resultUpdate)
+
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
 
 func TestUpdateOneFailedNoExist(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
-	defer mongoManager.DisconnectDb()
 
 	result, err := mongoManager.UpdateOne(collectionTest, timeoutTest, map[string]interface{}{"test": "test"}, map[string]interface{}{"test": "test"})
 	assert.Nil(t, result)
 	var myErr *libraryErrors.NotExistError
 	assert.ErrorAs(t, err, &myErr)
+
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
 
 func TestUpdateOneFailedInvalidTimeout(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
-	defer mongoManager.DisconnectDb()
 
 	result, err := mongoManager.UpdateOne(collectionTest, 0, map[string]interface{}{"test": "test"}, map[string]interface{}{"test": "test"})
 	assert.Nil(t, result)
 	var myErr *libraryErrors.InputError
 	assert.ErrorAs(t, err, &myErr)
+
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
 
 func TestUpdateManySuccess(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
-	defer mongoManager.DisconnectDb()
 
 	var insertDocuments []map[string]interface{}
 	insertDocument := map[string]interface{}{
@@ -339,23 +371,27 @@ func TestUpdateManySuccess(t *testing.T) {
 		expected["document"] = "test2"
 		assert.Equal(t, expected, resultUpdate[index])
 	}
+
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
 
 func TestUpdateManyFailedInvalidTimeout(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
-	defer mongoManager.DisconnectDb()
 
 	result, err := mongoManager.UpdateMany(collectionTest, 0, map[string]interface{}{"test": "test"}, map[string]interface{}{"test": "test"})
 	assert.Nil(t, result)
 	var myErr *libraryErrors.InputError
 	assert.ErrorAs(t, err, &myErr)
+
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
 
 func TestDeleteOneSuccess(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
-	defer mongoManager.DisconnectDb()
 
 	insertDocument := map[string]interface{}{
 		"test": "test",
@@ -365,32 +401,38 @@ func TestDeleteOneSuccess(t *testing.T) {
 
 	err = mongoManager.DeleteOne(collectionTest, timeoutTest, insertDocument)
 	assert.NoError(t, err)
+
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
 
 func TestDeleteOneFailedNoExist(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
-	defer mongoManager.DisconnectDb()
 
 	err = mongoManager.DeleteOne(collectionTest, timeoutTest, map[string]interface{}{"test": "test"})
 	var myErr *libraryErrors.NotExistError
 	assert.ErrorAs(t, err, &myErr)
+
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
 
 func TestDeleteOneFailedInvalidTimeout(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
-	defer mongoManager.DisconnectDb()
 
 	err = mongoManager.DeleteOne(collectionTest, 0, map[string]interface{}{"test": "test"})
 	var myErr *libraryErrors.InputError
 	assert.ErrorAs(t, err, &myErr)
+
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
 
 func TestDeleteManySuccess(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
-	defer mongoManager.DisconnectDb()
 
 	var insertDocuments []map[string]interface{}
 	insertDocument := map[string]interface{}{
@@ -404,15 +446,20 @@ func TestDeleteManySuccess(t *testing.T) {
 	result, err := mongoManager.DeleteMany(collectionTest, timeoutTest, insertDocument)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, result)
+
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
 
 func TestDeleteManyFailedInvalidTimeout(t *testing.T) {
 	mongoManager, err := initializeDb()
 	assert.NoError(t, err)
-	defer mongoManager.DisconnectDb()
 
 	result, err := mongoManager.DeleteMany(collectionTest, 0, map[string]interface{}{"test": "test"})
 	assert.Equal(t, 0, result)
 	var myErr *libraryErrors.InputError
 	assert.ErrorAs(t, err, &myErr)
+
+	err = mongoManager.DisconnectDb()
+	assert.NoError(t, err)
 }
