@@ -23,6 +23,7 @@ Different managers contains the different functions:
 - UpdateMany: Function to update more than 1 entry to the DB.
 - DeleteOne: Function to delete 1 entry from the DB.
 - DeleteMany: Function to delete more than 1 entry from the DB.
+- GetClient: Function to get the native client for using some specific functions of the client.
 
 ## Usage
 
@@ -54,6 +55,16 @@ if err != nil {
 
 err = mongoManager.DisconnectDb()
 data, err = mongoManager.FindOne("nameCollection", 5, filter)
+if err != nil {
+    // Code when error is raised
+}
+
+// It is possible to create a generic Manager
+databaseManager, err := := CreateDatabaseManager(mongo.CreateManager("dbURI", "dbName", 1))
+if err != nil {
+    // Code when error is raised
+}
+data, err = databaseManager.FindOne("nameCollection", 5, filter)
 if err != nil {
     // Code when error is raised
 }

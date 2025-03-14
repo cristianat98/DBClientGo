@@ -313,3 +313,9 @@ func (manager *Manager) DeleteMany(collection string, timeout int64, filter map[
 	result, err := manager.database.Collection(collection).DeleteMany(ctx, filter)
 	return int(result.DeletedCount), err
 }
+
+// GetClient is the function inside the Manager that allows to get the mongoClient to use some native functions
+// It returns the mongoClient
+func (manager *Manager) GetClient() *mongo.Client {
+	return manager.client
+}
