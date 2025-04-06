@@ -91,6 +91,15 @@ go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.0.2
 pre-commit run --all-files
 ```
 
+For running the tests, you need to run the following code:
+```sh
+# Linux
+Mongo_URI=<MONGO-URL> go test -v -cover ./...
+# Windows
+$env:Mongo_URI = "<MONGO-URL>"
+go test -v -cover ./...
+```
+
 ## Licence
 
 This project is licensed under the terms of the [GNU General Public License v3.0 (GPLv3)](https://www.gnu.org/licenses/gpl-3.0.html).
