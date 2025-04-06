@@ -83,6 +83,14 @@ The following clients to integrate are:
 
 If you are interested on contributing in the code, fork the repository, modify the code as you wish and create a Pull Request to the develop branch of the repository.
 
+To run pre-commit, you need to run the following commands:
+```sh
+pip install pre-commit
+go install github.com/lietu/go-pre-commit@v0.1.0
+go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.0.2
+pre-commit run --all-files
+```
+
 ## Licence
 
 This project is licensed under the terms of the [GNU General Public License v3.0 (GPLv3)](https://www.gnu.org/licenses/gpl-3.0.html).

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"reflect"
 	"time"
 
@@ -200,9 +201,14 @@ func (manager *Manager) FindMany(collection string, timeout int64, filter map[st
 			return nil, &libraryErrors.ConnectionError{Db: mongoDB}
 		}
 		return nil, err
-
 	}
-	defer cursor.Close(ctx)
+
+	defer func() {
+		if err := cursor.Close(ctx); err != nil {
+			log.Printf("Error closing cursor: %v", err)
+		}
+	}()
+
 	for cursor.Next(ctx) {
 		var result map[string]interface{}
 
