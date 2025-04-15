@@ -23,6 +23,7 @@ Different managers contains the different functions:
 - UpdateMany: Function to update more than 1 entry to the DB.
 - DeleteOne: Function to delete 1 entry from the DB.
 - DeleteMany: Function to delete more than 1 entry from the DB.
+- GetClient: Function to get the native client for using some specific functions of the client.
 
 ## Usage
 
@@ -57,6 +58,16 @@ data, err = mongoManager.FindOne("nameCollection", 5, filter)
 if err != nil {
     // Code when error is raised
 }
+
+// It is possible to create a generic Manager
+databaseManager, err := := CreateDatabaseManager(mongo.CreateManager("dbURI", "dbName", 1))
+if err != nil {
+    // Code when error is raised
+}
+data, err = databaseManager.FindOne("nameCollection", 5, filter)
+if err != nil {
+    // Code when error is raised
+}
 ```
 
 ## Support
@@ -71,6 +82,23 @@ The following clients to integrate are:
 ## Contributing
 
 If you are interested on contributing in the code, fork the repository, modify the code as you wish and create a Pull Request to the develop branch of the repository.
+
+To run pre-commit, you need to run the following commands:
+```sh
+pip install pre-commit
+go install github.com/lietu/go-pre-commit@v0.1.0
+go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.0.2
+pre-commit run --all-files
+```
+
+For running the tests, you need to run the following code:
+```sh
+# Linux
+Mongo_URI=<MONGO-URL> go test -v -cover ./...
+# Windows
+$env:Mongo_URI = "<MONGO-URL>"
+go test -v -cover ./...
+```
 
 ## Licence
 

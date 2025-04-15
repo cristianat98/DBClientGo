@@ -10,6 +10,14 @@ func (e *ConnectionError) Error() string {
 	return fmt.Sprintf("Connection refused from %s", e.Db)
 }
 
+type ClientError struct {
+	Message string
+}
+
+func (e *ClientError) Error() string {
+	return e.Message
+}
+
 type AlreadyExistError struct {
 	Message string
 }

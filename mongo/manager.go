@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"reflect"
 	"time"
 
@@ -65,6 +66,9 @@ func (manager *Manager) ConnectDb(dbURI, dbName string, timeout int64) error {
 
 // DisconnectDb is the function inside the Manager to disconnect from the MongoDB
 func (manager *Manager) DisconnectDb() error {
+	if manager.client == nil || manager.client.Ping(context.TODO(), nil) != nil {
+		return &libraryErrors.ClientError{Message: clientNotConnected}
+	}
 	return manager.client.Disconnect(context.TODO())
 }
 
@@ -76,6 +80,9 @@ func (manager *Manager) DisconnectDb() error {
 func (manager *Manager) InsertOne(collection string, timeout int64, document map[string]interface{}) (map[string]interface{}, error) {
 	if timeout < 1 {
 		return nil, &libraryErrors.InputError{Message: fmt.Sprintf(timeoutMessage, timeout)}
+	}
+	if manager.client == nil || manager.client.Ping(context.TODO(), nil) != nil {
+		return nil, &libraryErrors.ClientError{Message: clientNotConnected}
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer cancel()
@@ -103,6 +110,9 @@ func (manager *Manager) InsertOne(collection string, timeout int64, document map
 func (manager *Manager) InsertMany(collection string, timeout int64, documents []map[string]interface{}) ([]map[string]interface{}, error) {
 	if timeout < 1 {
 		return nil, &libraryErrors.InputError{Message: fmt.Sprintf(timeoutMessage, timeout)}
+	}
+	if manager.client == nil || manager.client.Ping(context.TODO(), nil) != nil {
+		return nil, &libraryErrors.ClientError{Message: clientNotConnected}
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer cancel()
@@ -148,6 +158,9 @@ func (manager *Manager) FindOne(collection string, timeout int64, filter map[str
 	if timeout < 1 {
 		return nil, &libraryErrors.InputError{Message: fmt.Sprintf(timeoutMessage, timeout)}
 	}
+	if manager.client == nil || manager.client.Ping(context.TODO(), nil) != nil {
+		return nil, &libraryErrors.ClientError{Message: clientNotConnected}
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer cancel()
 
@@ -175,6 +188,9 @@ func (manager *Manager) FindMany(collection string, timeout int64, filter map[st
 	if timeout < 1 {
 		return nil, &libraryErrors.InputError{Message: fmt.Sprintf(timeoutMessage, timeout)}
 	}
+	if manager.client == nil || manager.client.Ping(context.TODO(), nil) != nil {
+		return nil, &libraryErrors.ClientError{Message: clientNotConnected}
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer cancel()
 
@@ -185,9 +201,14 @@ func (manager *Manager) FindMany(collection string, timeout int64, filter map[st
 			return nil, &libraryErrors.ConnectionError{Db: mongoDB}
 		}
 		return nil, err
-
 	}
-	defer cursor.Close(ctx)
+
+	defer func() {
+		if err := cursor.Close(ctx); err != nil {
+			log.Printf("Error closing cursor: %v", err)
+		}
+	}()
+
 	for cursor.Next(ctx) {
 		var result map[string]interface{}
 
@@ -207,6 +228,9 @@ func (manager *Manager) FindMany(collection string, timeout int64, filter map[st
 func (manager *Manager) UpdateOne(collection string, timeout int64, filter map[string]interface{}, update interface{}) (map[string]interface{}, error) {
 	if timeout < 1 {
 		return nil, &libraryErrors.InputError{Message: fmt.Sprintf(timeoutMessage, timeout)}
+	}
+	if manager.client == nil || manager.client.Ping(context.TODO(), nil) != nil {
+		return nil, &libraryErrors.ClientError{Message: clientNotConnected}
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer cancel()
@@ -239,6 +263,9 @@ func (manager *Manager) UpdateOne(collection string, timeout int64, filter map[s
 func (manager *Manager) UpdateMany(collection string, timeout int64, filter map[string]interface{}, update interface{}) ([]map[string]interface{}, error) {
 	if timeout < 1 {
 		return nil, &libraryErrors.InputError{Message: fmt.Sprintf(timeoutMessage, timeout)}
+	}
+	if manager.client == nil || manager.client.Ping(context.TODO(), nil) != nil {
+		return nil, &libraryErrors.ClientError{Message: clientNotConnected}
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	opts := options.Update().SetUpsert(false)
@@ -288,6 +315,9 @@ func (manager *Manager) DeleteOne(collection string, timeout int64, filter map[s
 	if timeout < 1 {
 		return &libraryErrors.InputError{Message: fmt.Sprintf(timeoutMessage, timeout)}
 	}
+	if manager.client == nil || manager.client.Ping(context.TODO(), nil) != nil {
+		return &libraryErrors.ClientError{Message: clientNotConnected}
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer cancel()
 
@@ -307,9 +337,18 @@ func (manager *Manager) DeleteMany(collection string, timeout int64, filter map[
 	if timeout < 1 {
 		return 0, &libraryErrors.InputError{Message: fmt.Sprintf(timeoutMessage, timeout)}
 	}
+	if manager.client == nil || manager.client.Ping(context.TODO(), nil) != nil {
+		return 0, &libraryErrors.ClientError{Message: clientNotConnected}
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer cancel()
 
 	result, err := manager.database.Collection(collection).DeleteMany(ctx, filter)
 	return int(result.DeletedCount), err
+}
+
+// GetClient is the function inside the Manager that allows to get the mongoClient to use some native functions
+// It returns the mongoClient
+func (manager *Manager) GetClient() *mongo.Client {
+	return manager.client
 }
