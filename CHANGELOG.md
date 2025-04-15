@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/cristianat98/DBClientGo/compare/v1.4.0...v1.4.1) (2025-04-15)
+
+
+### Bug Fixes
+
+* crypto library updated ([6f13b06](https://github.com/cristianat98/DBClientGo/commit/6f13b0673d376267f0e20a46468cf414987d010b))
+
 # [1.4.0](https://github.com/cristianat98/DBClientGo/compare/v1.3.3...v1.4.0) (2025-04-15)
 
 
