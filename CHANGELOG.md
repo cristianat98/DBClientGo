@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/cristianat98/DBClientGo/compare/v1.3.3...v1.4.0) (2025-04-15)
+
+
+### Features
+
+* increase errors in dbclients ([#32](https://github.com/cristianat98/DBClientGo/issues/32)) ([757a0c9](https://github.com/cristianat98/DBClientGo/commit/757a0c972255bfdd47635917bc44817ab1311f58))
+
 ## [1.3.3](https://github.com/cristianat98/DBClientGo/compare/v1.3.2...v1.3.3) (2024-12-23)
 
 
