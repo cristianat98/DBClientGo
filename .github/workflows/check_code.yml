@@ -36,7 +36,7 @@ jobs:
           version: v1.64
 
       - name: Run pre-commit
-        uses: pre-commit/action@v2.0.2
+        uses: pre-commit/action@v3.0.0
         with:
           extra_args: -c .pre-commit-config-ci.yaml --all-files
 
