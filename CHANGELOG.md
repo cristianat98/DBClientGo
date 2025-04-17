@@ -1,3 +1,10 @@
+## [1.4.2](https://github.com/cristianat98/DBClientGo/compare/v1.4.1...v1.4.2) (2025-04-17)
+
+
+### Bug Fixes
+
+* GetClient deleted from the DatabaseInterface ([01d10cb](https://github.com/cristianat98/DBClientGo/commit/01d10cb295e30d5a9e12f7432baa7201413feb81))
+
 ## [1.4.1](https://github.com/cristianat98/DBClientGo/compare/v1.4.0...v1.4.1) (2025-04-15)
 
 
