@@ -23,7 +23,7 @@ Different managers contains the different functions:
 - UpdateMany: Function to update more than 1 entry to the DB.
 - DeleteOne: Function to delete 1 entry from the DB.
 - DeleteMany: Function to delete more than 1 entry from the DB.
-- GetClient: Function to get the native client for using some specific functions of the client.
+- GetClient: Function to get the native client for using some specific functions of the client. Not specified in the interface because the return is very specific for each DB.
 
 ## Usage
 
